@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGP FASHION - Collection</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* 기본: 갤러리는 스크롤 가능해야 함 */
+        body {
+            background-color: #050505;
+            color: white;
+            overflow-x: hidden; /* 가로 스크롤 방지 */
+        }
+
+        /* 폰트 적용 */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Noto Sans KR', sans-serif; }
+
+        /* -----------------------
+           Showroom Overlay (Popup)
+           ----------------------- */
+        #showroom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background: black;
+            
+            /* 트랜지션 효과: 아래에서 위로 등장 */
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            
+            /* 내부 비디오 제어를 위해 숨김 처리 안함, 위치로 제어 */
+        }
+
+        #showroom-overlay.active {
+            transform: translateY(0);
+        }
+
+        /* 비디오 컨테이너 */
+        #video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 재생 버튼 펄스 효과 */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        .play-btn-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* 갤러리 아이템 호버 효과 */
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <!-- =========================================
+         1. GALLERY VIEW (Main List)
+         ========================================= -->
+    <div id="gallery-view" class="min-h-screen px-6 py-12 md:px-12 transition-opacity duration-500">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-end mb-16 border-b border-white/10 pb-6">
+            <div>
+                <p class="text-xs tracking-[0.3em] text-gray-400 mb-2 uppercase">2025 S/S Collection</p>
+                <h1 class="text-4xl md:text-6xl font-serif italic">The Archives</h1>
+            </div>
+            <div class="hidden md:block text-right">
+                <p class="text-xs text-gray-500">SEOUL • PARIS • NEW YORK</p>
+                <p class="text-sm font-bold mt-1">GGP FASHION</p>
+            </div>
+        </header>
+
+        <!-- Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            
+            <!-- Item 1 -->
+            <div class="gallery-item cursor-pointer group" onclick="openShowroom('item1')">
+                <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
+                    <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1887&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 01">
+                    <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                        <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
+                    </div>
+                </div>
+                <h3 class="font-serif text-xl mb-1">Noir Elegance</h3>
+                <p class="text-xs text-gray-500 tracking-wider uppercase">Look 01 / Coat</p>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="gallery-item cursor-pointer group" onclick="openShowroom('item2')">
+                <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
+                    <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1888&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 02">
+                    <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                        <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
+                    </div>
+                </div>
+                <h3 class="font-serif text-xl mb-1">Urban Silhouette</h3>
+                <p class="text-xs text-gray-500 tracking-wider uppercase">Look 02 / Dress</p>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="gallery-item cursor-pointer group" onclick="openShowroom('item3')">
+                <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
+                    <img src="https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=1886&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 03">
+                    <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                        <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
+                    </div>
+                </div>
+                <h3 class="font-serif text-xl mb-1">Modern Classic</h3>
+                <p class="text-xs text-gray-500 tracking-wider uppercase">Look 03 / Suit</p>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <!-- =========================================
+         2. SHOWROOM POPUP (Overlay)
+         ========================================= -->
+    <div id="showroom-overlay">
+        
+        <!-- Close Button -->
+        <button onclick="closeShowroom()" class="absolute top-6 right-6 z-50 text-white mix-blend-difference hover:opacity-70 transition-opacity p-2">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        
+        <!-- Video Layer -->
+        <div id="video-container">
+            <!-- 데모용으로 동일한 비디오 소스를 사용합니다 -->
+            <video 
+                id="main-video"
+                muted 
+                loop
+                playsinline 
+                preload="auto"
+                class="w-full h-full object-cover"
+            >
+                <source src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm" type="video/webm">
+            </video>
+        </div>
+
+        <!-- Title Layer inside Popup -->
+        <div class="absolute top-8 left-8 z-40 pointer-events-none mix-blend-difference">
+            <h2 class="text-xs text-white/70 tracking-[0.3em] uppercase mb-1">Showroom</h2>
+            <h1 class="text-2xl font-serif text-white italic" id="popup-title">Noir Elegance</h1>
+        </div>
+
+        <!-- Controls UI (Existing Logic) -->
+        <div id="control-indicator" class="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center justify-center text-white transition-all duration-500 opacity-0 translate-y-4 pointer-events-none mix-blend-difference">
+            <div class="flex items-center gap-8">
+                <div class="flex flex-col items-center gap-1 opacity-70">
+                    <i data-lucide="move-left" class="w-6 h-6 animate-pulse"></i>
+                </div>
+                
+                <button id="resume-btn" class="group pointer-events-auto flex flex-col items-center gap-2 transition-transform hover:scale-110 active:scale-95 focus:outline-none">
+                    <div class="relative w-14 h-14 border-2 border-white rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm group-hover:bg-white/20 transition-colors play-btn-pulse">
+                        <i data-lucide="play" class="w-6 h-6 fill-white ml-1"></i>
+                    </div>
+                    <span class="text-[10px] tracking-[0.3em] uppercase font-bold text-white shadow-black drop-shadow-md">Resume</span>
+                </button>
+
+                <div class="flex flex-col items-center gap-1 opacity-70">
+                    <i data-lucide="move-right" class="w-6 h-6 animate-pulse"></i>
+                </div>
+            </div>
+            <p class="mt-4 text-[10px] text-white/60 tracking-widest font-light uppercase">Scroll to Rotate / Click to Play</p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Elements ---
+        const overlay = document.getElementById('showroom-overlay');
+        const video = document.getElementById('main-video');
+        const indicator = document.getElementById('control-indicator');
+        const resumeBtn = document.getElementById('resume-btn');
+        const popupTitle = document.getElementById('popup-title');
+
+        // --- State ---
+        let isShowroomActive = false; // 팝업 활성화 여부
+        let isAutoPlaying = true;
+        let targetTime = 0;
+        let touchStartY = 0;
+
+        const SCROLL_SENSITIVITY = 0.002; 
+        const TOUCH_SENSITIVITY = 0.005;
+
+        // ==========================================
+        // 1. Popup Open/Close Logic
+        // ==========================================
+        
+        window.openShowroom = function(itemId) {
+            // 타이틀 변경 (데모용)
+            if (itemId === 'item1') popupTitle.innerText = "Noir Elegance";
+            if (itemId === 'item2') popupTitle.innerText = "Urban Silhouette";
+            if (itemId === 'item3') popupTitle.innerText = "Modern Classic";
+
+            // 오버레이 활성화
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden'; // 백그라운드 스크롤 차단
+            isShowroomActive = true;
+
+            // 비디오 리셋 및 재생
+            isAutoPlaying = true;
+            video.currentTime = 0;
+            targetTime = 0;
+            video.play().catch(e => console.log("Play failed", e));
+            
+            // UI 초기화
+            indicator.classList.add('opacity-0', 'translate-y-4');
+        }
+
+        window.closeShowroom = function() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = ''; // 스크롤 복구
+            isShowroomActive = false;
+            
+            // 비디오 정지
+            video.pause();
+        }
+
+
+        // ==========================================
+        // 2. Showroom Interaction Logic
+        // ==========================================
+
+        function stopAutoPlay() {
+            if (isAutoPlaying && isShowroomActive) {
+                isAutoPlaying = false;
+                video.pause();
+                targetTime = video.currentTime;
+                indicator.classList.remove('opacity-0', 'translate-y-4');
+            }
+        }
+
+        function resumeAutoPlay(e) {
+            if (e) e.stopPropagation();
+            if (!isAutoPlaying && isShowroomActive) {
+                isAutoPlaying = true;
+                video.play();
+                indicator.classList.add('opacity-0', 'translate-y-4');
+            }
+        }
+
+        // Resume Button
+        resumeBtn.addEventListener('click', resumeAutoPlay);
+        resumeBtn.addEventListener('touchstart', (e) => {
+            e.stopPropagation(); 
+            resumeAutoPlay(e);
+        }, {passive: false});
+
+        // Click on screen to stop (Only when overlay is open)
+        overlay.addEventListener('mousedown', (e) => {
+            if (!resumeBtn.contains(e.target)) stopAutoPlay();
+        });
+        overlay.addEventListener('touchstart', (e) => {
+            if (!resumeBtn.contains(e.target)) {
+                stopAutoPlay();
+                touchStartY = e.touches[0].clientY;
+            }
+        });
+
+        // Wheel (Scroll) Logic - Only active when Showroom is open
+        window.addEventListener('wheel', (e) => {
+            if (!isShowroomActive) return; // 갤러리에서는 정상 스크롤
+            
+            // 쇼룸 활성화 상태에서는 휠로 비디오 제어
+            stopAutoPlay();
+            if (!video.duration) return;
+            targetTime += e.deltaY * SCROLL_SENSITIVITY;
+            handleLooping();
+        });
+
+        // Touch Move Logic
+        window.addEventListener('touchmove', (e) => {
+            if (!isShowroomActive) return;
+
+            // 쇼룸에서는 스크롤 막고 비디오 제어
+            stopAutoPlay();
+            if (!video.duration) return;
+
+            const touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchStartY - touchCurrentY;
+            touchStartY = touchCurrentY;
+
+            targetTime += deltaY * TOUCH_SENSITIVITY;
+            handleLooping();
+        });
+
+        function handleLooping() {
+            const duration = video.duration;
+            if (targetTime < 0) {
+                targetTime = duration + (targetTime % duration);
+            } else if (targetTime > duration) {
+                targetTime = targetTime % duration;
+            }
+        }
+
+        // Render Loop
+        function renderLoop() {
+            if (isShowroomActive && !isAutoPlaying && video.duration) {
+                if (!video.seeking) {
+                    if (Math.abs(video.currentTime - targetTime) > 0.0001) {
+                        video.currentTime = targetTime;
+                    }
+                }
+            }
+            requestAnimationFrame(renderLoop);
+        }
+
+        requestAnimationFrame(renderLoop);
+
+    </script>
+</body>
+</html>
