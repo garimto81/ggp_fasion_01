@@ -34,32 +34,54 @@
             width: 100%;
             height: 100%;
             z-index: 100;
-            background: black;
+            background: rgba(0, 0, 0, 0.95); /* 배경을 약간 투명하게 하여 뎁스감 표현 */
+            backdrop-filter: blur(5px);
             
-            /* 트랜지션 효과: 아래에서 위로 등장 */
-            transform: translateY(100%);
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            
-            /* 내부 비디오 제어를 위해 숨김 처리 안함, 위치로 제어 */
+            /* Flex로 중앙 정렬 (모달 형태) */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            /* 트랜지션 효과: 투명도 + 스케일 */
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer; /* 배경 클릭 가능함을 암시 */
         }
 
         #showroom-overlay.active {
-            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
         }
 
-        /* 비디오 컨테이너 */
+        /* 비디오 컨테이너: 원본 비율 유지하며 중앙 배치 */
         #video-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: relative;
+            width: auto;
+            height: auto;
+            max-width: 90vw;
+            max-height: 85vh;
+            
+            /* 팝업 스타일링 */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.4s ease-out;
+            cursor: default; /* 내부는 기본 커서 */
+        }
+
+        #showroom-overlay.active #video-container {
+            transform: scale(1);
         }
 
         video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 85vh; /* 화면 높이에 맞춤 */
+            object-fit: contain; /* 비율 유지 */
         }
 
         /* 재생 버튼 펄스 효과 */
@@ -106,7 +128,7 @@
             <!-- Item 1 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item1')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1887&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 01">
+                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/Gemini_Generated_Image_3uwcu63uwcu63uwc.jpg?q=80&w=1887&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 01">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -118,7 +140,7 @@
             <!-- Item 2 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item2')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1888&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 02">
+                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/name.jpg?q=80&w=1888&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 02">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -185,11 +207,11 @@
     <div id="showroom-overlay">
         
         <!-- Close Button -->
-        <button onclick="closeShowroom()" class="absolute top-6 right-6 z-50 text-white mix-blend-difference hover:opacity-70 transition-opacity p-2">
+        <button onclick="closeShowroom()" class="absolute top-6 right-6 z-50 text-white hover:text-gray-300 transition-colors p-2">
             <i data-lucide="x" class="w-8 h-8"></i>
         </button>
         
-        <!-- Video Layer -->
+        <!-- Video Container (Center Modal) -->
         <div id="video-container">
             <video 
                 id="main-video"
@@ -197,19 +219,18 @@
                 loop
                 playsinline 
                 preload="auto"
-                class="w-full h-full object-cover"
             >
                 <!-- 초기 소스 없음, JS로 동적 할당 -->
             </video>
         </div>
 
-        <!-- Title Layer inside Popup -->
+        <!-- Title Layer inside Popup (Top Left of Screen) -->
         <div class="absolute top-8 left-8 z-40 pointer-events-none mix-blend-difference">
             <h2 class="text-xs text-white/70 tracking-[0.3em] uppercase mb-1">Showroom</h2>
             <h1 class="text-2xl font-serif text-white italic" id="popup-title">Noir Elegance</h1>
         </div>
 
-        <!-- Controls UI (Existing Logic) -->
+        <!-- Controls UI (Bottom Center of Screen) -->
         <div id="control-indicator" class="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center justify-center text-white transition-all duration-500 opacity-0 translate-y-4 pointer-events-none mix-blend-difference">
             <div class="flex items-center gap-8">
                 <div class="flex flex-col items-center gap-1 opacity-70">
@@ -241,7 +262,7 @@
         const resumeBtn = document.getElementById('resume-btn');
         const popupTitle = document.getElementById('popup-title');
 
-        // --- Data: 갤러리 아이템별 설정 (개별 영상 링크 수정 가능) ---
+        // --- Data: 갤러리 아이템별 설정 ---
         const galleryData = {
             'item1': {
                 title: "Noir Elegance",
@@ -249,7 +270,6 @@
             },
             'item2': {
                 title: "Urban Silhouette",
-                // 아래 URL을 교체하여 다른 영상을 연결하세요
                 video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion3_2.webm" 
             },
             'item3': {
@@ -271,7 +291,7 @@
         };
 
         // --- State ---
-        let isShowroomActive = false; // 팝업 활성화 여부
+        let isShowroomActive = false;
         let isAutoPlaying = true;
         let targetTime = 0;
         let touchStartY = 0;
@@ -287,42 +307,32 @@
             const item = galleryData[itemId];
             if (!item) return;
 
-            // 1. 타이틀 업데이트
             popupTitle.innerText = item.title;
-
-            // 2. 비디오 소스 교체 및 로드
-            // 기존 소스가 있다면 교체, 없다면 할당
             video.src = item.video;
-            video.load(); // 소스 교체 후 반드시 load() 호출
+            video.load(); 
 
-            // 3. 오버레이 활성화
             overlay.classList.add('active');
-            document.body.style.overflow = 'hidden'; // 백그라운드 스크롤 차단
+            document.body.style.overflow = 'hidden'; 
             isShowroomActive = true;
 
-            // 4. 비디오 리셋 및 재생
             isAutoPlaying = true;
             video.currentTime = 0;
             targetTime = 0;
             
-            // Promise 처리로 재생 에러 방지
             const playPromise = video.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.log("Auto-play was prevented. Waiting for user interaction.", error);
+                    console.log("Auto-play was prevented.", error);
                 });
             }
             
-            // UI 초기화
             indicator.classList.add('opacity-0', 'translate-y-4');
         }
 
         window.closeShowroom = function() {
             overlay.classList.remove('active');
-            document.body.style.overflow = ''; // 스크롤 복구
+            document.body.style.overflow = ''; 
             isShowroomActive = false;
-            
-            // 비디오 정지 및 리소스 해제 권장 (선택)
             video.pause();
         }
 
@@ -349,29 +359,56 @@
             }
         }
 
-        // Resume Button
+        // Resume Button Logic
         resumeBtn.addEventListener('click', resumeAutoPlay);
         resumeBtn.addEventListener('touchstart', (e) => {
             e.stopPropagation(); 
             resumeAutoPlay(e);
         }, {passive: false});
 
-        // Click on screen to stop (Only when overlay is open)
-        overlay.addEventListener('mousedown', (e) => {
-            if (!resumeBtn.contains(e.target)) stopAutoPlay();
+
+        // ----------------------------------------------------
+        // [수정] 배경 클릭 시 닫기 & 비디오 인터랙션 분리
+        // ----------------------------------------------------
+        
+        // 1. 배경(Overlay) 클릭 시 닫기
+        overlay.addEventListener('click', (e) => {
+            // 클릭된 대상이 오버레이(검은 배경) 자체일 때만 닫기
+            if (e.target === overlay) {
+                closeShowroom();
+            }
         });
+
+        // 2. 마우스 클릭(인터랙션): 비디오나 컨트롤을 눌렀을 때만 stopAutoPlay
+        overlay.addEventListener('mousedown', (e) => {
+            // 배경을 눌렀다면 닫기 동작(click 이벤트)이 처리하므로 무시
+            if (e.target === overlay) return;
+            
+            // Resume 버튼을 눌렀다면 무시 (별도 핸들러 있음)
+            if (resumeBtn.contains(e.target)) return;
+
+            // 그 외(비디오 등)를 눌렀다면 정지
+            stopAutoPlay();
+        });
+
+        // 3. 터치 인터랙션
         overlay.addEventListener('touchstart', (e) => {
+            // 배경 터치는 닫기(click으로 이어짐)로 처리하기 위해 무시
+            if (e.target === overlay) return;
+
             if (!resumeBtn.contains(e.target)) {
                 stopAutoPlay();
                 touchStartY = e.touches[0].clientY;
             }
         });
 
-        // Wheel (Scroll) Logic - Only active when Showroom is open
+        // ----------------------------------------------------
+
+
+        // Wheel (Scroll) Logic
         window.addEventListener('wheel', (e) => {
-            if (!isShowroomActive) return; // 갤러리에서는 정상 스크롤
+            if (!isShowroomActive) return; 
             
-            // 쇼룸 활성화 상태에서는 휠로 비디오 제어
             stopAutoPlay();
             if (!video.duration) return;
             targetTime += e.deltaY * SCROLL_SENSITIVITY;
@@ -382,7 +419,7 @@
         window.addEventListener('touchmove', (e) => {
             if (!isShowroomActive) return;
 
-            // 쇼룸에서는 스크롤 막고 비디오 제어
+            // 터치 무브는 배경/비디오 구분 없이 스크롤로 인식하여 제어
             stopAutoPlay();
             if (!video.duration) return;
 
