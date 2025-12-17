@@ -100,7 +100,7 @@
             </div>
         </header>
 
-        <!-- Grid Layout -->
+        <!-- Grid Layout (6 Items) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             
             <!-- Item 1 -->
@@ -138,6 +138,42 @@
                 <h3 class="font-serif text-xl mb-1">Modern Classic</h3>
                 <p class="text-xs text-gray-500 tracking-wider uppercase">Look 03 / Suit</p>
             </div>
+
+            <!-- Item 4 -->
+            <div class="gallery-item cursor-pointer group" onclick="openShowroom('item4')">
+                <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
+                    <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=2073&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 04">
+                    <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                        <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
+                    </div>
+                </div>
+                <h3 class="font-serif text-xl mb-1">Pure Linen</h3>
+                <p class="text-xs text-gray-500 tracking-wider uppercase">Look 04 / Casual</p>
+            </div>
+
+            <!-- Item 5 -->
+            <div class="gallery-item cursor-pointer group" onclick="openShowroom('item5')">
+                <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
+                    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1983&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 05">
+                    <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                        <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
+                    </div>
+                </div>
+                <h3 class="font-serif text-xl mb-1">Evening Glow</h3>
+                <p class="text-xs text-gray-500 tracking-wider uppercase">Look 05 / Gown</p>
+            </div>
+
+            <!-- Item 6 -->
+            <div class="gallery-item cursor-pointer group" onclick="openShowroom('item6')">
+                <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
+                    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 06">
+                    <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                        <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
+                    </div>
+                </div>
+                <h3 class="font-serif text-xl mb-1">Winter Deep</h3>
+                <p class="text-xs text-gray-500 tracking-wider uppercase">Look 06 / Outer</p>
+            </div>
             
         </div>
     </div>
@@ -155,7 +191,6 @@
         
         <!-- Video Layer -->
         <div id="video-container">
-            <!-- 데모용으로 동일한 비디오 소스를 사용합니다 -->
             <video 
                 id="main-video"
                 muted 
@@ -164,7 +199,7 @@
                 preload="auto"
                 class="w-full h-full object-cover"
             >
-                <source src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion3_2.webm" type="video/webm">
+                <!-- 초기 소스 없음, JS로 동적 할당 -->
             </video>
         </div>
 
@@ -206,6 +241,35 @@
         const resumeBtn = document.getElementById('resume-btn');
         const popupTitle = document.getElementById('popup-title');
 
+        // --- Data: 갤러리 아이템별 설정 (개별 영상 링크 수정 가능) ---
+        const galleryData = {
+            'item1': {
+                title: "Noir Elegance",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+            },
+            'item2': {
+                title: "Urban Silhouette",
+                // 아래 URL을 교체하여 다른 영상을 연결하세요
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm" 
+            },
+            'item3': {
+                title: "Modern Classic",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+            },
+            'item4': {
+                title: "Pure Linen",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+            },
+            'item5': {
+                title: "Evening Glow",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+            },
+            'item6': {
+                title: "Winter Deep",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+            }
+        };
+
         // --- State ---
         let isShowroomActive = false; // 팝업 활성화 여부
         let isAutoPlaying = true;
@@ -220,21 +284,34 @@
         // ==========================================
         
         window.openShowroom = function(itemId) {
-            // 타이틀 변경 (데모용)
-            if (itemId === 'item1') popupTitle.innerText = "Noir Elegance";
-            if (itemId === 'item2') popupTitle.innerText = "Urban Silhouette";
-            if (itemId === 'item3') popupTitle.innerText = "Modern Classic";
+            const item = galleryData[itemId];
+            if (!item) return;
 
-            // 오버레이 활성화
+            // 1. 타이틀 업데이트
+            popupTitle.innerText = item.title;
+
+            // 2. 비디오 소스 교체 및 로드
+            // 기존 소스가 있다면 교체, 없다면 할당
+            video.src = item.video;
+            video.load(); // 소스 교체 후 반드시 load() 호출
+
+            // 3. 오버레이 활성화
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden'; // 백그라운드 스크롤 차단
             isShowroomActive = true;
 
-            // 비디오 리셋 및 재생
+            // 4. 비디오 리셋 및 재생
             isAutoPlaying = true;
             video.currentTime = 0;
             targetTime = 0;
-            video.play().catch(e => console.log("Play failed", e));
+            
+            // Promise 처리로 재생 에러 방지
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Auto-play was prevented. Waiting for user interaction.", error);
+                });
+            }
             
             // UI 초기화
             indicator.classList.add('opacity-0', 'translate-y-4');
@@ -245,7 +322,7 @@
             document.body.style.overflow = ''; // 스크롤 복구
             isShowroomActive = false;
             
-            // 비디오 정지
+            // 비디오 정지 및 리소스 해제 권장 (선택)
             video.pause();
         }
 
