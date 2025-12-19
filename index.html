@@ -12,11 +12,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        /* 기본: 갤러리는 스크롤 가능해야 함 */
+        /* 기본 설정 */
         body {
             background-color: #050505;
             color: white;
-            overflow-x: hidden; /* 가로 스크롤 방지 */
+            overflow-x: hidden;
         }
 
         /* 폰트 적용 */
@@ -34,19 +34,17 @@
             width: 100%;
             height: 100%;
             z-index: 100;
-            background: rgba(0, 0, 0, 0.95); /* 배경을 약간 투명하게 하여 뎁스감 표현 */
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
             
-            /* Flex로 중앙 정렬 (모달 형태) */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* 스크롤 가능하도록 변경 */
+            overflow-y: auto;
+            overflow-x: hidden;
 
-            /* 트랜지션 효과: 투명도 + 스케일 */
+            /* 트랜지션 효과 */
             opacity: 0;
             visibility: hidden;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            cursor: pointer; /* 배경 클릭 가능함을 암시 */
         }
 
         #showroom-overlay.active {
@@ -54,34 +52,112 @@
             visibility: visible;
         }
 
-        /* 비디오 컨테이너: 원본 비율 유지하며 중앙 배치 */
-        #video-container {
+        /* 팝업 내부 콘텐츠 래퍼 */
+        .showroom-content {
             position: relative;
-            width: auto;
-            height: auto;
-            max-width: 90vw;
-            max-height: 85vh;
-            
-            /* 팝업 스타일링 */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
-            overflow: hidden;
-            transform: scale(0.95);
-            transition: transform 0.4s ease-out;
-            cursor: default; /* 내부는 기본 커서 */
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100%;
+            padding: 60px 20px 100px; /* 상단 여백 조정 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        #showroom-overlay.active #video-container {
-            transform: scale(1);
+        /* 1. 비디오 섹션 (수정됨) */
+        #video-section-wrapper {
+            position: relative;
+            width: 100%;
+            /* 고정 높이 대신 비율과 최대 높이 사용 */
+            aspect-ratio: 9/16; 
+            max-height: 80vh;
+            max-width: 450px; /* 너무 넓어지지 않도록 제한 (9:16 비율 유지 위해) */
+            
+            margin-bottom: 4rem;
+            
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background-color: black;
+            transition: transform 0.4s ease-out;
         }
 
         video {
-            display: block;
-            width: auto;
-            height: auto;
-            max-width: 100%;
-            max-height: 85vh; /* 화면 높이에 맞춤 */
-            object-fit: contain; /* 비율 유지 */
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 비율에 맞춰 꽉 채움 */
+        }
+
+        /* 2. 상세 이미지 그리드 */
+        #detail-images-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out 0.2s;
+        }
+        
+        #showroom-overlay.active #detail-images-grid {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (min-width: 768px) {
+            #detail-images-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+            /* 데스크탑에서는 비디오 래퍼 사이즈를 조금 더 키워도 됨 (비율 유지하되) */
+            #video-section-wrapper {
+                max-width: 50vh; /* 화면 높이 기준 비율 유지 */
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            #detail-images-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* 이미지 스타일 */
+        .detail-img-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3/4;
+            overflow: hidden;
+            border-radius: 4px;
+            background-color: #111;
+            cursor: zoom-in; /* 확대 가능 표시 */
+        }
+        .detail-img-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .detail-img-item:hover img {
+            transform: scale(1.03);
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            .showroom-content {
+                padding: 0;
+                padding-bottom: 60px;
+            }
+            #video-section-wrapper {
+                max-width: 100%;
+                /* 모바일 풀스크린 느낌 */
+                max-height: 85vh; 
+                border-radius: 0;
+                margin-bottom: 2rem;
+            }
+            #detail-images-grid {
+                padding: 0 16px;
+            }
         }
 
         /* 재생 버튼 펄스 효과 */
@@ -100,6 +176,37 @@
         }
         .gallery-item:hover .gallery-overlay {
             opacity: 1;
+        }
+
+        /* -----------------------
+           Image Lightbox (New)
+           ----------------------- */
+        #lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200; /* Showroom(100)보다 높게 */
+            background: rgba(0,0,0,0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            cursor: zoom-out;
+        }
+        #lightbox-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        #lightbox-img {
+            max-width: 95vw;
+            max-height: 95vh;
+            object-fit: contain;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #lightbox-overlay.active #lightbox-img {
+            transform: scale(1);
         }
     </style>
 </head>
@@ -124,7 +231,6 @@
 
         <!-- Grid Layout (6 Items) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            
             <!-- Item 1 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item1')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
@@ -196,60 +302,79 @@
                 <h3 class="font-serif text-xl mb-1">Winter Deep</h3>
                 <p class="text-xs text-gray-500 tracking-wider uppercase">Look 06 / Outer</p>
             </div>
-            
         </div>
     </div>
 
 
     <!-- =========================================
-         2. SHOWROOM POPUP (Overlay)
+         2. SHOWROOM POPUP (Scrollable Overlay)
          ========================================= -->
     <div id="showroom-overlay">
         
         <!-- Close Button -->
-        <button onclick="closeShowroom()" class="absolute top-6 right-6 z-50 text-white hover:text-gray-300 transition-colors p-2">
+        <button onclick="closeShowroom()" class="fixed top-6 right-6 z-[110] text-white hover:text-gray-300 transition-colors p-2 bg-black/20 backdrop-blur-md rounded-full">
             <i data-lucide="x" class="w-8 h-8"></i>
         </button>
-        
-        <!-- Video Container (Center Modal) -->
-        <div id="video-container">
-            <video 
-                id="main-video"
-                muted 
-                loop
-                playsinline 
-                preload="auto"
-            >
-                <!-- 초기 소스 없음, JS로 동적 할당 -->
-            </video>
-        </div>
 
-        <!-- Title Layer inside Popup (Top Left of Screen) -->
-        <div class="absolute top-8 left-8 z-40 pointer-events-none mix-blend-difference">
-            <h2 class="text-xs text-white/70 tracking-[0.3em] uppercase mb-1">Showroom</h2>
-            <h1 class="text-2xl font-serif text-white italic" id="popup-title">Noir Elegance</h1>
-        </div>
+        <!-- Content Wrapper -->
+        <div class="showroom-content">
+            
+            <!-- A. Video Section (Aspect Ratio Fixed) -->
+            <div id="video-section-wrapper">
+                <video 
+                    id="main-video"
+                    muted 
+                    loop
+                    playsinline 
+                    preload="auto"
+                >
+                    <!-- 초기 소스 없음, JS로 동적 할당 -->
+                </video>
 
-        <!-- Controls UI (Bottom Center of Screen) -->
-        <div id="control-indicator" class="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center justify-center text-white transition-all duration-500 opacity-0 translate-y-4 pointer-events-none mix-blend-difference">
-            <div class="flex items-center gap-8">
-                <div class="flex flex-col items-center gap-1 opacity-70">
-                    <i data-lucide="move-left" class="w-6 h-6 animate-pulse"></i>
+                <!-- Title Overlay -->
+                <div class="absolute top-8 left-8 z-10 pointer-events-none mix-blend-difference">
+                    <h2 class="text-xs text-white/70 tracking-[0.3em] uppercase mb-1">Showroom</h2>
+                    <h1 class="text-2xl font-serif text-white italic" id="popup-title">Noir Elegance</h1>
                 </div>
-                
-                <button id="resume-btn" class="group pointer-events-auto flex flex-col items-center gap-2 transition-transform hover:scale-110 active:scale-95 focus:outline-none">
-                    <div class="relative w-14 h-14 border-2 border-white rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm group-hover:bg-white/20 transition-colors play-btn-pulse">
-                        <i data-lucide="play" class="w-6 h-6 fill-white ml-1"></i>
-                    </div>
-                    <span class="text-[10px] tracking-[0.3em] uppercase font-bold text-white shadow-black drop-shadow-md">Resume</span>
-                </button>
 
-                <div class="flex flex-col items-center gap-1 opacity-70">
-                    <i data-lucide="move-right" class="w-6 h-6 animate-pulse"></i>
+                <!-- Controls UI -->
+                <div id="control-indicator" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center justify-center text-white transition-all duration-500 opacity-0 translate-y-4 pointer-events-none mix-blend-difference w-full px-4 text-center">
+                    <div class="flex items-center justify-center gap-8">
+                        <div class="flex flex-col items-center gap-1 opacity-70">
+                            <i data-lucide="move-left" class="w-6 h-6 animate-pulse"></i>
+                        </div>
+                        
+                        <button id="resume-btn" class="group pointer-events-auto flex flex-col items-center gap-2 transition-transform hover:scale-110 active:scale-95 focus:outline-none">
+                            <div class="relative w-14 h-14 border-2 border-white rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm group-hover:bg-white/20 transition-colors play-btn-pulse">
+                                <i data-lucide="play" class="w-6 h-6 fill-white ml-1"></i>
+                            </div>
+                            <span class="text-[10px] tracking-[0.3em] uppercase font-bold text-white shadow-black drop-shadow-md">Resume</span>
+                        </button>
+
+                        <div class="flex flex-col items-center gap-1 opacity-70">
+                            <i data-lucide="move-right" class="w-6 h-6 animate-pulse"></i>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-[10px] text-white/60 tracking-widest font-light uppercase">Hover & Scroll to Rotate</p>
                 </div>
             </div>
-            <p class="mt-4 text-[10px] text-white/60 tracking-widest font-light uppercase">Scroll to Rotate / Click to Play</p>
+
+            <!-- B. Detail Images Grid -->
+            <div id="detail-images-grid">
+                <!-- JS will populate this -->
+            </div>
+
         </div>
+    </div>
+
+    <!-- =========================================
+         3. LIGHTBOX OVERLAY (New)
+         ========================================= -->
+    <div id="lightbox-overlay" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Full View">
+        <button class="absolute top-6 right-6 text-white p-2 bg-black/20 backdrop-blur-sm rounded-full">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
     </div>
 
     <script>
@@ -257,36 +382,55 @@
 
         // --- Elements ---
         const overlay = document.getElementById('showroom-overlay');
+        const videoWrapper = document.getElementById('video-section-wrapper');
         const video = document.getElementById('main-video');
         const indicator = document.getElementById('control-indicator');
         const resumeBtn = document.getElementById('resume-btn');
         const popupTitle = document.getElementById('popup-title');
+        const imagesGrid = document.getElementById('detail-images-grid');
+        
+        // Lightbox Elements
+        const lightboxOverlay = document.getElementById('lightbox-overlay');
+        const lightboxImg = document.getElementById('lightbox-img');
 
-        // --- Data: 갤러리 아이템별 설정 ---
+        // --- Data ---
+        const demoImages = [
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1529139574466-a302c2d56dc8?q=80&w=1000&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1550614000-4b9519e02d84?q=80&w=1000&auto=format&fit=crop"
+        ];
+
         const galleryData = {
             'item1': {
                 title: "Noir Elegance",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion_02.webm"
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm",
+                images: demoImages
             },
             'item2': {
                 title: "Urban Silhouette",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion3_2.webm" 
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion3_2.webm",
+                images: demoImages
             },
             'item3': {
                 title: "Modern Classic",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion_04_1.webm"
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion_04_1.webm",
+                images: demoImages
             },
             'item4': {
                 title: "Pure Linen",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion_05.webm"
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_05.webm",
+                images: demoImages
             },
             'item5': {
                 title: "Evening Glow",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm",
+                images: demoImages
             },
             'item6': {
                 title: "Winter Deep",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm"
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm",
+                images: demoImages
             }
         };
 
@@ -307,23 +451,47 @@
             const item = galleryData[itemId];
             if (!item) return;
 
+            // 1. 기본 정보 업데이트
             popupTitle.innerText = item.title;
             video.src = item.video;
             video.load(); 
 
+            // 2. 상세 이미지 렌더링 & Lightbox 연동
+            imagesGrid.innerHTML = '';
+            if (item.images && item.images.length > 0) {
+                item.images.forEach((imgUrl, index) => {
+                    const imgDiv = document.createElement('div');
+                    imgDiv.className = 'detail-img-item group';
+                    
+                    // 클릭 시 라이트박스 오픈
+                    imgDiv.onclick = function() {
+                        openLightbox(imgUrl);
+                    };
+
+                    imgDiv.innerHTML = `
+                        <img src="${imgUrl}" alt="Detail ${index + 1}" loading="lazy">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
+                            <i data-lucide="maximize-2" class="text-white w-8 h-8 opacity-80"></i>
+                        </div>
+                    `;
+                    imagesGrid.appendChild(imgDiv);
+                });
+                lucide.createIcons(); // 동적 생성된 아이콘 초기화
+            }
+
+            // 3. 팝업 활성화
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden'; 
+            overlay.scrollTop = 0;
+            
             isShowroomActive = true;
-
             isAutoPlaying = true;
             video.currentTime = 0;
             targetTime = 0;
             
             const playPromise = video.play();
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Auto-play was prevented.", error);
-                });
+                playPromise.catch(error => console.log("Auto-play prevented"));
             }
             
             indicator.classList.add('opacity-0', 'translate-y-4');
@@ -336,9 +504,23 @@
             video.pause();
         }
 
+        // ==========================================
+        // 2. Lightbox Logic
+        // ==========================================
+        
+        window.openLightbox = function(src) {
+            lightboxImg.src = src;
+            lightboxOverlay.classList.add('active');
+        }
+
+        window.closeLightbox = function() {
+            lightboxOverlay.classList.remove('active');
+            // 잠깐 기다렸다가 src 비우기 (트랜지션 동안 깜빡임 방지)
+            setTimeout(() => { lightboxImg.src = ""; }, 300);
+        }
 
         // ==========================================
-        // 2. Showroom Interaction Logic
+        // 3. Interaction Logic
         // ==========================================
 
         function stopAutoPlay() {
@@ -359,76 +541,44 @@
             }
         }
 
-        // Resume Button Logic
         resumeBtn.addEventListener('click', resumeAutoPlay);
-        resumeBtn.addEventListener('touchstart', (e) => {
-            e.stopPropagation(); 
-            resumeAutoPlay(e);
-        }, {passive: false});
-
-
-        // ----------------------------------------------------
-        // [수정] 배경 클릭 시 닫기 & 비디오 인터랙션 분리
-        // ----------------------------------------------------
         
-        // 1. 배경(Overlay) 클릭 시 닫기
-        overlay.addEventListener('click', (e) => {
-            // 클릭된 대상이 오버레이(검은 배경) 자체일 때만 닫기
-            if (e.target === overlay) {
-                closeShowroom();
-            }
-        });
-
-        // 2. 마우스 클릭(인터랙션): 비디오나 컨트롤을 눌렀을 때만 stopAutoPlay
-        overlay.addEventListener('mousedown', (e) => {
-            // 배경을 눌렀다면 닫기 동작(click 이벤트)이 처리하므로 무시
-            if (e.target === overlay) return;
-            
-            // Resume 버튼을 눌렀다면 무시 (별도 핸들러 있음)
-            if (resumeBtn.contains(e.target)) return;
-
-            // 그 외(비디오 등)를 눌렀다면 정지
-            stopAutoPlay();
-        });
-
-        // 3. 터치 인터랙션
-        overlay.addEventListener('touchstart', (e) => {
-            // 배경 터치는 닫기(click으로 이어짐)로 처리하기 위해 무시
-            if (e.target === overlay) return;
-
-            if (!resumeBtn.contains(e.target)) {
-                stopAutoPlay();
-                touchStartY = e.touches[0].clientY;
-            }
-        });
-
-        // ----------------------------------------------------
-
-
-        // Wheel (Scroll) Logic
-        window.addEventListener('wheel', (e) => {
-            if (!isShowroomActive) return; 
-            
+        // Scroll Logic on Video Wrapper
+        videoWrapper.addEventListener('wheel', (e) => {
+            if (!isShowroomActive) return;
+            e.preventDefault();
             stopAutoPlay();
             if (!video.duration) return;
             targetTime += e.deltaY * SCROLL_SENSITIVITY;
             handleLooping();
-        });
+        }, { passive: false });
 
-        // Touch Move Logic
-        window.addEventListener('touchmove', (e) => {
+        videoWrapper.addEventListener('touchmove', (e) => {
             if (!isShowroomActive) return;
-
-            // 터치 무브는 배경/비디오 구분 없이 스크롤로 인식하여 제어
+            e.preventDefault();
             stopAutoPlay();
             if (!video.duration) return;
-
             const touchCurrentY = e.touches[0].clientY;
             const deltaY = touchStartY - touchCurrentY;
             touchStartY = touchCurrentY;
-
             targetTime += deltaY * TOUCH_SENSITIVITY;
             handleLooping();
+        }, { passive: false });
+
+        videoWrapper.addEventListener('touchstart', (e) => {
+            if (!resumeBtn.contains(e.target)) {
+                touchStartY = e.touches[0].clientY;
+                stopAutoPlay(); 
+            }
+        });
+        
+        resumeBtn.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            resumeAutoPlay(e);
+        }, { passive: false });
+
+        videoWrapper.addEventListener('mousedown', (e) => {
+            if (!resumeBtn.contains(e.target)) stopAutoPlay();
         });
 
         function handleLooping() {
@@ -440,7 +590,6 @@
             }
         }
 
-        // Render Loop
         function renderLoop() {
             if (isShowroomActive && !isAutoPlaying && video.duration) {
                 if (!video.seeking) {
