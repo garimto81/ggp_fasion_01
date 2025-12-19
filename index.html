@@ -25,7 +25,7 @@
         .font-sans { font-family: 'Noto Sans KR', sans-serif; }
 
         /* -----------------------
-           Showroom Overlay (Popup) - [롤백됨: 중앙 정렬]
+           Showroom Overlay (Popup)
            ----------------------- */
         #showroom-overlay {
             position: fixed;
@@ -40,10 +40,10 @@
             overflow-y: auto;
             overflow-x: hidden;
 
-            /* 다시 중앙 정렬로 복구 */
+            /* [수정] flex-start로 변경하여 긴 콘텐츠의 상단 잘림 방지 */
             display: flex;
+            align-items: flex-start; 
             justify-content: center;
-            align-items: center; 
 
             opacity: 0;
             visibility: hidden;
@@ -55,26 +55,35 @@
             visibility: visible;
         }
 
-        /* 팝업 내부 콘텐츠 래퍼 - [롤백됨: 패딩 복구] */
+        /* 팝업 내부 콘텐츠 래퍼 */
         .showroom-content {
             position: relative;
             width: 100%;
             max-width: 1200px;
-            margin: 0 auto;
-            min-height: 100%;
+            
+            /* [수정] margin: auto를 주어 화면보다 작을 땐 중앙 정렬, 클 땐 스크롤 가능하게 함 */
+            margin: auto; 
+            
+            /* [수정] min-height 제거 (auto margin 작동을 위해) */
+            /* min-height: 100%; */
+            
             padding: 60px 20px 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* 1. 비디오 섹션 */
+        /* 1. 비디오 섹션 (수정됨) */
         #video-section-wrapper {
             position: relative;
-            width: 100%;
-            aspect-ratio: 9/16; 
+            
+            /* [수정] 9:16 전용 제한(max-width: 400px) 제거 및 유동적 사이즈 적용 */
+            width: fit-content; /* 내부 콘텐츠(비디오) 크기에 딱 맞게 조절 */
+            height: auto;
+            
+            /* 화면 높이 제한만 유지 */
             max-height: 70vh; 
-            max-width: 400px; 
+            max-width: 90vw; /* 화면 너비는 넘어가지 않도록 */
             
             margin-bottom: 4rem;
             
@@ -83,12 +92,22 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             background-color: black;
             transition: transform 0.4s ease-out;
+            
+            /* 내부 비디오 중앙 정렬 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #video-section-wrapper video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            /* [수정] 비디오가 스스로 비율을 유지하며 최대 높이/너비를 맞춤 */
+            max-height: 70vh; 
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            
+            display: block; /* 하단 미세 여백 제거 */
+            object-fit: contain; /* 비율 유지하며 다 보여줌 */
         }
 
         /* 2. 상세 이미지 그리드 */
@@ -112,8 +131,9 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2rem;
             }
+            /* 데스크탑에서는 비디오 래퍼 max-width 해제 (height 기준이므로) */
             #video-section-wrapper {
-                max-width: 45vh; 
+                /* max-width: 45vh; <-- 제거, video width: auto가 결정함 */
             }
         }
         
@@ -149,10 +169,19 @@
                 padding: 60px 0 60px; /* 모바일 상단 여백 */
             }
             #video-section-wrapper {
-                max-width: 100%;
-                max-height: 80vh; 
+                width: 100%; /* 모바일에서는 가로 꽉 채우기 */
+                height: auto;
+                max-height: 75vh; 
                 border-radius: 0;
                 margin-bottom: 2rem;
+                display: flex; /* Flex 유지하여 중앙 정렬 */
+                background: black;
+            }
+            #video-section-wrapper video {
+                width: 100%;
+                height: 100%;
+                max-height: 75vh;
+                object-fit: contain; /* 모바일에서도 잘림 없이 */
             }
             #detail-images-grid {
                 padding: 0 16px;
@@ -235,12 +264,9 @@
 
         <!-- Grid Layout (6 Items) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            <!-- [수정] 모든 img 태그에 object-top 클래스 추가 -->
-            
             <!-- Item 1 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item1')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <!-- object-top 적용: 이미지가 잘릴 때 상단(얼굴/상체) 기준 정렬 -->
                     <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_3uwcu63uwcu63uwc.jpg?q=80&w=1887&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 01">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
@@ -326,7 +352,7 @@
         <!-- Content Wrapper -->
         <div class="showroom-content">
             
-            <!-- A. Video Section (Aspect Ratio Fixed) -->
+            <!-- A. Video Section (Adaptive Size) -->
             <div id="video-section-wrapper">
                 <video 
                     id="main-video"
@@ -418,7 +444,7 @@
         const galleryData = {
             'item1': {
                 title: "Noir Elegance",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_02.webm",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion_02_2.mp4",
                 images: demoImages
             },
             'item2': {
@@ -433,7 +459,7 @@
             },
             'item4': {
                 title: "Pure Linen",
-                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion_05.webm",
+                video: "https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/ggp_fashion_05.webm",
                 images: demoImages
             },
             'item5': {
