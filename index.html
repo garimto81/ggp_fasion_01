@@ -40,7 +40,6 @@
             overflow-y: auto;
             overflow-x: hidden;
 
-            /* [수정] flex-start로 변경하여 긴 콘텐츠의 상단 잘림 방지 */
             display: flex;
             align-items: flex-start; 
             justify-content: center;
@@ -60,30 +59,20 @@
             position: relative;
             width: 100%;
             max-width: 1200px;
-            
-            /* [수정] margin: auto를 주어 화면보다 작을 땐 중앙 정렬, 클 땐 스크롤 가능하게 함 */
             margin: auto; 
-            
-            /* [수정] min-height 제거 (auto margin 작동을 위해) */
-            /* min-height: 100%; */
-            
             padding: 60px 20px 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* 1. 비디오 섹션 (수정됨) */
+        /* 1. 비디오 섹션 */
         #video-section-wrapper {
             position: relative;
-            
-            /* [수정] 9:16 전용 제한(max-width: 400px) 제거 및 유동적 사이즈 적용 */
-            width: fit-content; /* 내부 콘텐츠(비디오) 크기에 딱 맞게 조절 */
+            width: fit-content; 
             height: auto;
-            
-            /* 화면 높이 제한만 유지 */
             max-height: 70vh; 
-            max-width: 90vw; /* 화면 너비는 넘어가지 않도록 */
+            max-width: 90vw; 
             
             margin-bottom: 4rem;
             
@@ -93,21 +82,18 @@
             background-color: black;
             transition: transform 0.4s ease-out;
             
-            /* 내부 비디오 중앙 정렬 */
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         #video-section-wrapper video {
-            /* [수정] 비디오가 스스로 비율을 유지하며 최대 높이/너비를 맞춤 */
             max-height: 70vh; 
             max-width: 100%;
             width: auto;
             height: auto;
-            
-            display: block; /* 하단 미세 여백 제거 */
-            object-fit: contain; /* 비율 유지하며 다 보여줌 */
+            display: block; 
+            object-fit: contain; 
         }
 
         /* 2. 상세 이미지 그리드 */
@@ -130,10 +116,6 @@
             #detail-images-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2rem;
-            }
-            /* 데스크탑에서는 비디오 래퍼 max-width 해제 (height 기준이므로) */
-            #video-section-wrapper {
-                /* max-width: 45vh; <-- 제거, video width: auto가 결정함 */
             }
         }
         
@@ -169,19 +151,21 @@
                 padding: 60px 0 60px; /* 모바일 상단 여백 */
             }
             #video-section-wrapper {
-                width: 100%; /* 모바일에서는 가로 꽉 채우기 */
+                width: 100%; 
                 height: auto;
                 max-height: 75vh; 
+                min-height: 50vh; 
+                
                 border-radius: 0;
                 margin-bottom: 2rem;
-                display: flex; /* Flex 유지하여 중앙 정렬 */
+                display: flex; 
                 background: black;
             }
             #video-section-wrapper video {
                 width: 100%;
                 height: 100%;
                 max-height: 75vh;
-                object-fit: contain; /* 모바일에서도 잘림 없이 */
+                object-fit: contain; 
             }
             #detail-images-grid {
                 padding: 0 16px;
@@ -213,7 +197,7 @@
             position: fixed;
             inset: 0;
             z-index: 200;
-            background: rgba(0,0,0,0.98); /* 거의 불투명한 배경 */
+            background: rgba(0,0,0,0.98); 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -360,15 +344,18 @@
                     loop
                     playsinline 
                     preload="auto"
+                    autoplay
                 >
                     <!-- 초기 소스 없음, JS로 동적 할당 -->
                 </video>
 
-                <!-- Title Overlay -->
+                <!-- [삭제] 팝업 내부 타이틀 오버레이 제거 -->
+                <!-- 
                 <div class="absolute top-8 left-8 z-10 pointer-events-none mix-blend-difference">
                     <h2 class="text-xs text-white/70 tracking-[0.3em] uppercase mb-1">Showroom</h2>
                     <h1 class="text-2xl font-serif text-white italic" id="popup-title">Noir Elegance</h1>
-                </div>
+                </div> 
+                -->
 
                 <!-- Maximize Button (Video Fullscreen) -->
                 <button onclick="openLightbox('video')" class="absolute top-8 right-8 z-30 text-white p-2 bg-black/20 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors pointer-events-auto">
@@ -426,7 +413,8 @@
         const video = document.getElementById('main-video');
         const indicator = document.getElementById('control-indicator');
         const resumeBtn = document.getElementById('resume-btn');
-        const popupTitle = document.getElementById('popup-title');
+        // [삭제] popupTitle 참조 제거
+        // const popupTitle = document.getElementById('popup-title');
         const imagesGrid = document.getElementById('detail-images-grid');
         
         // Lightbox Elements
@@ -478,10 +466,14 @@
         let isShowroomActive = false;
         let isAutoPlaying = true;
         let targetTime = 0;
+        
+        // Touch control variables
         let touchStartY = 0;
+        let touchBaseTime = 0; // Base time when touch starts
 
-        const SCROLL_SENSITIVITY = 0.002; 
-        const TOUCH_SENSITIVITY = 0.005;
+        // Sensitivity: Touch requires larger value as delta is pixel-based
+        const TOUCH_SENSITIVITY = 0.005; // Adjusted for direct feeling
+        const WHEEL_SENSITIVITY = 0.002;
 
         // ==========================================
         // 1. Popup Open/Close Logic
@@ -491,23 +483,20 @@
             const item = galleryData[itemId];
             if (!item) return;
 
-            // 1. 기본 정보 업데이트
-            popupTitle.innerText = item.title;
+            // [삭제] 타이틀 업데이트 로직 제거
+            // popupTitle.innerText = item.title;
+            
             video.src = item.video;
             video.load(); 
 
-            // 2. 상세 이미지 렌더링
             imagesGrid.innerHTML = '';
             if (item.images && item.images.length > 0) {
                 item.images.forEach((imgUrl, index) => {
                     const imgDiv = document.createElement('div');
                     imgDiv.className = 'detail-img-item group';
-                    
-                    // 클릭 시 라이트박스 오픈 (이미지)
                     imgDiv.onclick = function() {
                         openLightbox('image', imgUrl);
                     };
-
                     imgDiv.innerHTML = `
                         <img src="${imgUrl}" alt="Detail ${index + 1}" loading="lazy">
                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
@@ -519,7 +508,6 @@
                 lucide.createIcons();
             }
 
-            // 3. 팝업 활성화
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden'; 
             overlay.scrollTop = 0;
@@ -545,11 +533,11 @@
         }
 
         // ==========================================
-        // 2. Lightbox Logic (Video & Image)
+        // 2. Lightbox Logic
         // ==========================================
         
         window.openLightbox = function(type, src) {
-            lightboxContainer.innerHTML = ''; // Clear previous content
+            lightboxContainer.innerHTML = ''; 
 
             if (type === 'image') {
                 const img = document.createElement('img');
@@ -580,7 +568,7 @@
         }
 
         // ==========================================
-        // 3. Interaction Logic
+        // 3. Interaction Logic (Revised Touch)
         // ==========================================
 
         function stopAutoPlay() {
@@ -603,34 +591,51 @@
 
         resumeBtn.addEventListener('click', resumeAutoPlay);
         
-        // Scroll Logic on Video Wrapper
+        // --- Mouse Wheel Logic (Desktop) ---
         videoWrapper.addEventListener('wheel', (e) => {
             if (!isShowroomActive) return;
             e.preventDefault();
             stopAutoPlay();
             if (!video.duration) return;
-            targetTime += e.deltaY * SCROLL_SENSITIVITY;
+            targetTime += e.deltaY * WHEEL_SENSITIVITY;
             handleLooping();
         }, { passive: false });
+
+        // --- Touch Logic (Mobile - Absolute Delta) ---
+        
+        videoWrapper.addEventListener('touchstart', (e) => {
+            // Prevent interaction if touching the button
+            if (resumeBtn.contains(e.target)) return;
+
+            // Capture initial state
+            touchStartY = e.touches[0].clientY;
+            
+            // Sync targetTime to current playback time to start scrubbing from here
+            // If already paused and scrubbing, targetTime is already set.
+            // If playing, we pause and set targetTime.
+            if (isAutoPlaying) {
+                stopAutoPlay(); 
+            }
+            touchBaseTime = targetTime;
+        });
 
         videoWrapper.addEventListener('touchmove', (e) => {
             if (!isShowroomActive) return;
-            e.preventDefault();
-            stopAutoPlay();
+            
+            // Prevent page scrolling while dragging on video
+            if(e.cancelable) e.preventDefault();
+
             if (!video.duration) return;
-            const touchCurrentY = e.touches[0].clientY;
-            const deltaY = touchStartY - touchCurrentY;
-            touchStartY = touchCurrentY;
-            targetTime += deltaY * TOUCH_SENSITIVITY;
+
+            const currentY = e.touches[0].clientY;
+            const deltaY = touchStartY - currentY; // Drag UP (negative Y) -> Positive Delta (Forward)
+            
+            // Calculate absolute target time from base
+            targetTime = touchBaseTime + (deltaY * TOUCH_SENSITIVITY);
+            
             handleLooping();
         }, { passive: false });
-
-        videoWrapper.addEventListener('touchstart', (e) => {
-            if (!resumeBtn.contains(e.target)) {
-                touchStartY = e.touches[0].clientY;
-                stopAutoPlay(); 
-            }
-        });
+        
         
         resumeBtn.addEventListener('touchstart', (e) => {
             e.stopPropagation();
@@ -644,6 +649,7 @@
         function handleLooping() {
             const duration = video.duration;
             if (targetTime < 0) {
+                // Modulo for negative numbers in JS can be tricky, this ensures wrap around
                 targetTime = duration + (targetTime % duration);
             } else if (targetTime > duration) {
                 targetTime = targetTime % duration;
