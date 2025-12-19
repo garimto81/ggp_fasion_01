@@ -25,7 +25,7 @@
         .font-sans { font-family: 'Noto Sans KR', sans-serif; }
 
         /* -----------------------
-           Showroom Overlay (Popup)
+           Showroom Overlay (Popup) - [롤백됨: 중앙 정렬]
            ----------------------- */
         #showroom-overlay {
             position: fixed;
@@ -37,11 +37,14 @@
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(8px);
             
-            /* 스크롤 가능하도록 변경 */
             overflow-y: auto;
             overflow-x: hidden;
 
-            /* 트랜지션 효과 */
+            /* 다시 중앙 정렬로 복구 */
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+
             opacity: 0;
             visibility: hidden;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -52,27 +55,26 @@
             visibility: visible;
         }
 
-        /* 팝업 내부 콘텐츠 래퍼 */
+        /* 팝업 내부 콘텐츠 래퍼 - [롤백됨: 패딩 복구] */
         .showroom-content {
             position: relative;
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
             min-height: 100%;
-            padding: 60px 20px 100px; /* 상단 여백 조정 */
+            padding: 60px 20px 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* 1. 비디오 섹션 (수정됨) */
+        /* 1. 비디오 섹션 */
         #video-section-wrapper {
             position: relative;
             width: 100%;
-            /* 고정 높이 대신 비율과 최대 높이 사용 */
             aspect-ratio: 9/16; 
-            max-height: 80vh;
-            max-width: 450px; /* 너무 넓어지지 않도록 제한 (9:16 비율 유지 위해) */
+            max-height: 70vh; 
+            max-width: 400px; 
             
             margin-bottom: 4rem;
             
@@ -83,10 +85,10 @@
             transition: transform 0.4s ease-out;
         }
 
-        video {
+        #video-section-wrapper video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* 비율에 맞춰 꽉 채움 */
+            object-fit: cover;
         }
 
         /* 2. 상세 이미지 그리드 */
@@ -110,9 +112,8 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2rem;
             }
-            /* 데스크탑에서는 비디오 래퍼 사이즈를 조금 더 키워도 됨 (비율 유지하되) */
             #video-section-wrapper {
-                max-width: 50vh; /* 화면 높이 기준 비율 유지 */
+                max-width: 45vh; 
             }
         }
         
@@ -130,7 +131,7 @@
             overflow: hidden;
             border-radius: 4px;
             background-color: #111;
-            cursor: zoom-in; /* 확대 가능 표시 */
+            cursor: zoom-in;
         }
         .detail-img-item img {
             width: 100%;
@@ -145,13 +146,11 @@
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .showroom-content {
-                padding: 0;
-                padding-bottom: 60px;
+                padding: 60px 0 60px; /* 모바일 상단 여백 */
             }
             #video-section-wrapper {
                 max-width: 100%;
-                /* 모바일 풀스크린 느낌 */
-                max-height: 85vh; 
+                max-height: 80vh; 
                 border-radius: 0;
                 margin-bottom: 2rem;
             }
@@ -179,13 +178,13 @@
         }
 
         /* -----------------------
-           Image Lightbox (New)
+           Unified Lightbox (Video & Image)
            ----------------------- */
         #lightbox-overlay {
             position: fixed;
             inset: 0;
-            z-index: 200; /* Showroom(100)보다 높게 */
-            background: rgba(0,0,0,0.98);
+            z-index: 200;
+            background: rgba(0,0,0,0.98); /* 거의 불투명한 배경 */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -198,14 +197,19 @@
             opacity: 1;
             visibility: visible;
         }
-        #lightbox-img {
+        
+        .lightbox-content {
             max-width: 95vw;
             max-height: 95vh;
+            width: auto;
+            height: auto;
             object-fit: contain;
             transform: scale(0.95);
             transition: transform 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        #lightbox-overlay.active #lightbox-img {
+
+        #lightbox-overlay.active .lightbox-content {
             transform: scale(1);
         }
     </style>
@@ -231,10 +235,13 @@
 
         <!-- Grid Layout (6 Items) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            <!-- [수정] 모든 img 태그에 object-top 클래스 추가 -->
+            
             <!-- Item 1 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item1')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_3uwcu63uwcu63uwc.jpg?q=80&w=1887&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 01">
+                    <!-- object-top 적용: 이미지가 잘릴 때 상단(얼굴/상체) 기준 정렬 -->
+                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_3uwcu63uwcu63uwc.jpg?q=80&w=1887&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 01">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -246,7 +253,7 @@
             <!-- Item 2 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item2')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/name.jpg?q=80&w=1888&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 02">
+                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/name.jpg?q=80&w=1888&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 02">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -258,7 +265,7 @@
             <!-- Item 3 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item3')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_oic0ykoic0ykoic0.jpg?q=80&w=1886&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 03">
+                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_oic0ykoic0ykoic0.jpg?q=80&w=1886&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 03">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -270,7 +277,7 @@
             <!-- Item 4 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item4')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_4tzzmo4tzzmo4tzz.jpg?q=80&w=2073&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 04">
+                    <img src="https://lhgjkbngqmysxnhqwcoc.supabase.co/storage/v1/object/public/ggp_fashion/ggp_fashion/Gemini_Generated_Image_4tzzmo4tzzmo4tzz.jpg?q=80&w=2073&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 04">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -282,7 +289,7 @@
             <!-- Item 5 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item5')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1983&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 05">
+                    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1983&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 05">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -294,7 +301,7 @@
             <!-- Item 6 -->
             <div class="gallery-item cursor-pointer group" onclick="openShowroom('item6')">
                 <div class="relative overflow-hidden aspect-[3/4] mb-4 bg-gray-900">
-                    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700" alt="Look 06">
+                    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover object-top transition-transform duration-700" alt="Look 06">
                     <div class="gallery-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
                         <span class="border border-white/50 px-6 py-2 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-colors">View Detail</span>
                     </div>
@@ -337,6 +344,11 @@
                     <h1 class="text-2xl font-serif text-white italic" id="popup-title">Noir Elegance</h1>
                 </div>
 
+                <!-- Maximize Button (Video Fullscreen) -->
+                <button onclick="openLightbox('video')" class="absolute top-8 right-8 z-30 text-white p-2 bg-black/20 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors pointer-events-auto">
+                    <i data-lucide="maximize" class="w-5 h-5"></i>
+                </button>
+
                 <!-- Controls UI -->
                 <div id="control-indicator" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center justify-center text-white transition-all duration-500 opacity-0 translate-y-4 pointer-events-none mix-blend-difference w-full px-4 text-center">
                     <div class="flex items-center justify-center gap-8">
@@ -368,11 +380,13 @@
     </div>
 
     <!-- =========================================
-         3. LIGHTBOX OVERLAY (New)
+         3. LIGHTBOX OVERLAY (Unified)
          ========================================= -->
     <div id="lightbox-overlay" onclick="closeLightbox()">
-        <img id="lightbox-img" src="" alt="Full View">
-        <button class="absolute top-6 right-6 text-white p-2 bg-black/20 backdrop-blur-sm rounded-full">
+        <!-- JS로 여기에 img 혹은 video 태그가 삽입됨 -->
+        <div id="lightbox-container"></div>
+        
+        <button class="absolute top-6 right-6 text-white p-2 bg-black/20 backdrop-blur-sm rounded-full hover:bg-white/20">
             <i data-lucide="x" class="w-8 h-8"></i>
         </button>
     </div>
@@ -391,7 +405,7 @@
         
         // Lightbox Elements
         const lightboxOverlay = document.getElementById('lightbox-overlay');
-        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxContainer = document.getElementById('lightbox-container');
 
         // --- Data ---
         const demoImages = [
@@ -456,16 +470,16 @@
             video.src = item.video;
             video.load(); 
 
-            // 2. 상세 이미지 렌더링 & Lightbox 연동
+            // 2. 상세 이미지 렌더링
             imagesGrid.innerHTML = '';
             if (item.images && item.images.length > 0) {
                 item.images.forEach((imgUrl, index) => {
                     const imgDiv = document.createElement('div');
                     imgDiv.className = 'detail-img-item group';
                     
-                    // 클릭 시 라이트박스 오픈
+                    // 클릭 시 라이트박스 오픈 (이미지)
                     imgDiv.onclick = function() {
-                        openLightbox(imgUrl);
+                        openLightbox('image', imgUrl);
                     };
 
                     imgDiv.innerHTML = `
@@ -476,7 +490,7 @@
                     `;
                     imagesGrid.appendChild(imgDiv);
                 });
-                lucide.createIcons(); // 동적 생성된 아이콘 초기화
+                lucide.createIcons();
             }
 
             // 3. 팝업 활성화
@@ -505,18 +519,38 @@
         }
 
         // ==========================================
-        // 2. Lightbox Logic
+        // 2. Lightbox Logic (Video & Image)
         // ==========================================
         
-        window.openLightbox = function(src) {
-            lightboxImg.src = src;
+        window.openLightbox = function(type, src) {
+            lightboxContainer.innerHTML = ''; // Clear previous content
+
+            if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = 'lightbox-content';
+                img.onclick = (e) => e.stopPropagation();
+                lightboxContainer.appendChild(img);
+            } else if (type === 'video') {
+                const vid = document.createElement('video');
+                vid.src = video.src;
+                vid.className = 'lightbox-content';
+                vid.autoplay = true;
+                vid.controls = true; 
+                vid.loop = true;
+                vid.onclick = (e) => e.stopPropagation();
+                lightboxContainer.appendChild(vid);
+                stopAutoPlay();
+            }
+
             lightboxOverlay.classList.add('active');
         }
 
         window.closeLightbox = function() {
             lightboxOverlay.classList.remove('active');
-            // 잠깐 기다렸다가 src 비우기 (트랜지션 동안 깜빡임 방지)
-            setTimeout(() => { lightboxImg.src = ""; }, 300);
+            setTimeout(() => { 
+                lightboxContainer.innerHTML = ''; 
+            }, 300);
         }
 
         // ==========================================
